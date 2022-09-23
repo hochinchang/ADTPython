@@ -1,9 +1,7 @@
 import numpy as np
+import sys
 import netCDF4 as nc
 from PIL import Image
-import matplotlib.pyplot as plt
-import pyproj
-import cartopy.crs as ccrs
 from scipy.interpolate import interp1d
 import pyresample as pr
 from pyresample.geometry import AreaDefinition
@@ -29,8 +27,10 @@ def plotTemp(lat,lon,lat_array,lon_array,temp):
     image_con=pr.image.ImageContainerNearest(cnt,swath_def,radius_of_influence=50000)
     image_new=image_con.resample(image_def)
     ImageS=Image.fromarray(image_new.image_data,'L')
-    setGridAndCoastline(ImageS,image_def)
-    ImageS.show()
+    Image_New=ImageS.convert('RGB')
+    setGridAndCoastline(Image_New,image_def)
+    #Image_New.show()
+    Image_New.save('UsingPIL.png')
     
 def floatToCnt(temp):
     max_value=np.max(temp)
@@ -40,8 +40,8 @@ def floatToCnt(temp):
 
 def imageArea(lat,lon):
     #p=pyproj.Proj(proj='eqc',lat_0=lat,lon_0=lon)
-    x1,y1=-1000000*2,-1000000*2
-    x2,y2= 1000000*2, 1000000*2
+    x1,y1=-1000000,-1000000
+    x2,y2= 1000000, 1000000
     area_id='ADT Area'
     description='Typhoon Image '
     proj_id='Typhoon'
@@ -54,10 +54,12 @@ def setGridAndCoastline(ImageS,image_def):
     cw = ContourWriterAGG(ShapePath)
     cw.add_coastlines(ImageS,image_def,resolution='l',outline=(255,0,0),width=2)
     font = aggdraw.Font('white',ttfFile)
-    cw.add_grid(ImageS,image_def,(20,20),(10,10),font,outline=(0,0,255),width=3)
+    cw.add_grid(ImageS,image_def,(2.5,2.5),(2.5,2.5),font,outline=(0,0,255),width=3)
 
 if __name__ == '__main__':
-    ff="D:\ADTPython\HS_H08_20210911_0400_B14_19W_TY.nc"
+    #ff="D:\ADTPython\HS_H08_20210911_0400_B14_19W_TY.nc"
+    ff=sys.argv[1]
+    print(ff)
     lat,lon,temp=readNcFile(ff)
     central_lat,central_lon=findCentralPosition(lat,lon)
     plotTemp(central_lat,central_lon,lat,lon,temp)
